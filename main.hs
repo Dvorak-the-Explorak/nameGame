@@ -1,18 +1,20 @@
 import Data.Char
 import Data.Bifunctor
+import Data.Function
 
 main = interact $
   unlines . map nameGame . lines
-  -- unlines . map nameGame . const ["Mary", "Shirley", "Arnold", "Joe"]
-
+  -- unlines . map nameGame . const ["Mary", "Shirley",  "Arnold", "Joe"]
 
 nameGame :: String -> String
-nameGame = unlines . apply songlines . repeat 
+nameGame = unlines . apply songlines
   where
     songlines = [line1, line2, line3, line4, line5]
 
-makeLine fs = join " " . apply fs . repeat
+-- apply a list of functions to a single input, returning a list of outputs
+apply fs = flip map fs . (&)
 
+-- These take the name and produce the line of the song
 line1 :: String -> String
 line1 = makeLine [exclaim] 
 line2 = makeLine [id, id, bo]
@@ -20,6 +22,7 @@ line3 = makeLine [const "bonana", const "fanna", fo]
 line4 = makeLine [const "Fee fi", mo]
 line5 = makeLine [exclaim] 
 
+makeLine fs = join " " . apply fs
 
 -- add an exclamation mark
 exclaim = (++ "!")
@@ -27,7 +30,6 @@ exclaim = (++ "!")
 bo = subName "B"
 fo = subName "F"
 mo = subName "M"
-
 
 -- substitute the given start for the start of the name like: Shirley -> Bo-birley
 --  if the starting letters are the same, leave out second sub like: Mary -> Mo-ary
@@ -43,13 +45,6 @@ splitName = fork (takeWhile cons, dropWhile cons)
   where
     cons = not . flip elem vowels
 vowels = "AEIOUaeiou"
-
-
--- apply a list of functions to a list of inputs until either runs out
-apply :: [a->b] -> [a] -> [b]
-apply [] xs = []
-apply fs [] = []
-apply (f:fs) (x:xs) = (f x):apply fs xs
 
 -- combine elements in a list together with a given separator
 --  eg join " " ["Hello", "world"] = "Hello world"
